@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Documentos Digitales{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-folder"></i> Documentos Digitales</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#subirDocumentoModal">
+        <i class="bi bi-upload"></i> Subir Documento
+    </button>
+</div>
+
+<div class="card shadow">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Tipo</th>
+                        <th>Subido por</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for documento in documentos %}
+                    <tr>
+                        <td>{{ documento.Id_Documento_digital }}</td>
+                        <td>{{ documento.nombre_documento }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if documento.tipo_documento == 'Normativo' %}bg-primary
+                                {% elif documento.tipo_documento == 'Instructivo' %}bg-info text-dark
+                                {% elif documento.tipo_documento == 'Certificación' %}bg-success
+                                {% else %}bg-secondary{% endif %}">
+                                {{ documento.tipo_documento }}
+                            </span>
+                        </td>
+                        <td>{{ documento.usuario_subio }}</td>
+                        <td>{{ documento.fecha_subida.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>
+                            <a href="{{ url_for('static', filename='uploads/' + documento.archivo_pdf) }}" 
+                               class="btn btn-sm btn-outline-primary" target="_blank">
+                                <i class="bi bi-download"></i> Descargar
+                            </a>
+                            <button class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Subir Documento -->
+<div class="modal fade" id="subirDocumentoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Subir Nuevo Documento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('subir_documento') }}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre del Documento</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tipo" class="form-label">Tipo de Documento</label>
+                        <select class="form-select" id="tipo" name="tipo" required>
+                            <option value="Normativo">Normativo</option>
+                            <option value="Instructivo">Instructivo</option>
+                            <option value="Certificación">Certificación</option>
+                            <option value="Académico">Académico</option>
+                            <option value="Reporte">Reporte</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="archivo" class="form-label">Archivo PDF</label>
+                        <input type="file" class="form-control" id="archivo" name="archivo" accept=".pdf" required>
+                        <small class="text-muted">Solo se aceptan archivos en formato PDF</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Subir Documento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

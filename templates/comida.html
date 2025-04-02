@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Comida{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-egg-fried"></i> Gestión de Entrega de Comida</h2>
+
+<div class="card shadow mb-4">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0"><i class="bi bi-list-check"></i> Últimas Entregas</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-success">
+                    <tr>
+                        <th>ID</th>
+                        <th>Aprendiz</th>
+                        <th>Tipo Comida</th>
+                        <th>Fecha/Hora</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entrega in entregas %}
+                    <tr>
+                        <td>{{ entrega.Id_Entrega_comida }}</td>
+                        <td>{{ entrega.Nombres }} {{ entrega.Apellidos }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if entrega.tipo_comida == 'Desayuno' %}bg-warning text-dark
+                                {% elif entrega.tipo_comida == 'Almuerzo' %}bg-primary
+                                {% elif entrega.tipo_comida == 'Cena' %}bg-dark
+                                {% else %}bg-info text-dark{% endif %}">
+                                {{ entrega.tipo_comida }}
+                            </span>
+                        </td>
+                        <td>{{ entrega.fecha_entrega.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if entrega.estado_entrega == 'Entregado' %}bg-success
+                                {% elif entrega.estado_entrega == 'Cancelado' %}bg-danger
+                                {% else %}bg-warning text-dark{% endif %}">
+                                {{ entrega.estado_entrega }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if entrega.estado_entrega != 'Entregado' %}
+                            <div class="btn-group">
+                                <form method="POST" action="{{ url_for('cambiar_estado_comida', id=entrega.Id_Entrega_comida) }}">
+                                    <input type="hidden" name="estado" value="Entregado">
+                                    <button type="submit" class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-check-circle"></i> Entregado
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('cambiar_estado_comida', id=entrega.Id_Entrega_comida) }}">
+                                    <input type="hidden" name="estado" value="Cancelado">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-x-circle"></i> Cancelar
+                                    </button>
+                                </form>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="bi bi-file-earmark-bar-graph"></i> Reportes CORSAMO</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-primary">
+                    <tr>
+                        <th>ID Reporte</th>
+                        <th>Administrador</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reporte in reportes %}
+                    <tr>
+                        <td>{{ reporte.Id_Reporte_corsamo }}</td>
+                        <td>
+                            {% if reporte.Administrador_Id_Administrador == 1 %}
+                            Carlos Rodríguez
+                            {% else %}
+                            Pedro Hernández
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i> Descargar
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

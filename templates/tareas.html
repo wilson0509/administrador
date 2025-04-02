@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}{% if user_type == 'Aprendiz' %}Mis Tareas{% else %}Gestión de Tareas{% endif %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-list-task"></i> {% if user_type == 'Aprendiz' %}Mis Tareas{% else %}Gestión de Tareas{% endif %}</h2>
+    {% if user_type == 'Administrador' %}
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#nuevaTareaModal">
+        <i class="bi bi-plus-circle"></i> Nueva Tarea
+    </button>
+    {% endif %}
+</div>
+
+<div class="card shadow">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-info">
+                    <tr>
+                        <th>ID</th>
+                        {% if user_type == 'Administrador' %}<th>Aprendiz</th>{% endif %}
+                        <th>Descripción</th>
+                        <th>Asignación</th>
+                        <th>Vencimiento</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tarea in tareas %}
+                    <tr class="task-{{ tarea.estado_tarea.lower().replace(' ', '-') }}">
+                        <td>{{ tarea.Id_Tareas_dirigidas }}</td>
+                        {% if user_type == 'Administrador' %}
+                        <td>{{ tarea.Nombres }} {{ tarea.Apellidos }}</td>
+                        {% endif %}
+                        <td>{{ tarea.descripcion|truncate(30) }}</td>
+                        <td>{{ tarea.fecha_asignacion.strftime('%d/%m/%Y') }}</td>
+                        <td>
+                            {% if tarea.fecha_finalizacion %}
+                                {{ tarea.fecha_finalizacion.strftime('%d/%m/%Y') }}
+                                {% if tarea.fecha_finalizacion|esta_atrasada(tarea.estado_tarea) %}
+                                <span class="badge bg-danger">Atrasada</span>
+                                {% endif %}
+                            {% else %}
+                                Sin fecha
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if tarea.estado_tarea == 'Completada' %}bg-success
+                                {% elif tarea.estado_tarea == 'En progreso' %}bg-primary
+                                {% elif tarea.estado_tarea == 'Cancelada' %}bg-secondary
+                                {% else %}bg-warning text-dark{% endif %}">
+                                {{ tarea.estado_tarea }}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" 
+                                    data-bs-target="#detalleTareaModal{{ tarea.Id_Tareas_dirigidas }}">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            {% if user_type == 'Aprendiz' and tarea.estado_tarea != 'Completada' and tarea.estado_tarea != 'Cancelada' %}
+                            <div class="btn-group">
+                                <form method="POST" action="{{ url_for('cambiar_estado_tarea', id=tarea.Id_Tareas_dirigidas) }}">
+                                    <input type="hidden" name="estado" value="En progreso">
+                                    <button type="submit" class="btn btn-sm btn-outline-info">
+                                        <i class="bi bi-arrow-right-circle"></i>
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('cambiar_estado_tarea', id=tarea.Id_Tareas_dirigidas) }}">
+                                    <input type="hidden" name="estado" value="Completada">
+                                    <button type="submit" class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-check-circle"></i>
+                                    </button>
+                                </form>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    <!-- Modal Detalle Tarea -->
+                    <div class="modal fade" id="detalleTareaModal{{ tarea.Id_Tareas_dirigidas }}" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header bg-info text-white">
+                                    <h5 class="modal-title">Detalle de Tarea #{{ tarea.Id_Tareas_dirigidas }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row mb-3">
+                                        {% if user_type == 'Administrador' %}
+                                        <div class="col-md-6">
+                                            <h6>Aprendiz:</h6>
+                                            <p>{{ tarea.Nombres }} {{ tarea.Apellidos }}</p>
+                                        </div>
+                                        {% endif %}
+                                        <div class="col-md-6">
+                                            <h6>Fecha Asignación:</h6>
+                                            <p>{{ tarea.fecha_asignacion.strftime('%d/%m/%Y %H:%M') }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <h6>Estado:</h6>
+                                            <span class="badge 
+                                                {% if tarea.estado_tarea == 'Completada' %}bg-success
+                                                {% elif tarea.estado_tarea == 'En progreso' %}bg-primary
+                                                {% elif tarea.estado_tarea == 'Cancelada' %}bg-secondary
+                                                {% else %}bg-warning text-dark{% endif %}">
+                                                {{ tarea.estado_tarea }}
+                                            </span>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Fecha Vencimiento:</h6>
+                                            <p>
+                                                {% if tarea.fecha_finalizacion %}
+                                                    {{ tarea.fecha_finalizacion.strftime('%d/%m/%Y') }}
+                                                    {% if tarea.fecha_finalizacion|esta_atrasada(tarea.estado_tarea) %}
+                                                    <span class="badge bg-danger">Atrasada</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    Sin fecha
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6>Descripción Completa:</h6>
+                                        <p>{{ tarea.descripcion }}</p>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nueva Tarea -->
+{% if user_type == 'Administrador' %}
+<div class="modal fade" id="nuevaTareaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Asignar Nueva Tarea</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('nueva_tarea') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="aprendiz_id" class="form-label">Aprendiz</label>
+                        <select class="form-select" id="aprendiz_id" name="aprendiz_id" required>
+                            {% for aprendiz in aprendices %}
+                            <option value="{{ aprendiz.Id_Aprendiz }}">{{ aprendiz.Nombres }} {{ aprendiz.Apellidos }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descripcion" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="descripcion" name="descripcion" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fecha_finalizacion" class="form-label">Fecha de Vencimiento</label>
+                        <input type="date" class="form-control" id="fecha_finalizacion" name="fecha_finalizacion" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Asignar Tarea</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

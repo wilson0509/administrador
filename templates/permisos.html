@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Permisos{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-file-earmark-text"></i> {% if user_type == 'Aprendiz' %}Mis Permisos{% else %}Gestión de Permisos{% endif %}</h2>
+    {% if user_type == 'Aprendiz' %}
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#nuevoPermisoModal">
+        <i class="bi bi-plus-circle"></i> Solicitar Permiso
+    </button>
+    {% endif %}
+</div>
+
+<div class="card shadow">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-primary">
+                    <tr>
+                        <th>ID</th>
+                        {% if user_type in ['Administrador', 'Delegado'] %}<th>Aprendiz</th>{% endif %}
+                        <th>Motivo</th>
+                        <th>Urgencia</th>
+                        <th>Estado</th>
+                        <th>Fecha Solicitud</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for permiso in permisos %}
+                    <tr>
+                        <td>{{ permiso.Id_Solicitud_Permiso }}</td>
+                        {% if user_type in ['Administrador', 'Delegado'] %}
+                        <td>{{ permiso.Nombres }} {{ permiso.Apellidos }}</td>
+                        {% endif %}
+                        <td>{{ permiso.motivo }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if permiso.urgencia == 'Urgente' %}bg-danger
+                                {% elif permiso.urgencia == 'Alta' %}bg-warning text-dark
+                                {% elif permiso.urgencia == 'Media' %}bg-info
+                                {% else %}bg-secondary{% endif %}">
+                                {{ permiso.urgencia }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if permiso.estado_permiso == 'Aprobado' %}bg-success
+                                {% elif permiso.estado_permiso == 'Rechazado' %}bg-danger
+                                {% elif permiso.estado_permiso == 'En revision' %}bg-info text-dark
+                                {% else %}bg-warning text-dark{% endif %}">
+                                {{ permiso.estado_permiso }}
+                            </span>
+                        </td>
+                        <td>{{ permiso.fecha_solicitud.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" 
+                                    data-bs-target="#detallePermisoModal{{ permiso.Id_Solicitud_Permiso }}">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            {% if user_type in ['Administrador', 'Delegado'] and permiso.estado_permiso == 'Pendiente' %}
+                            <div class="btn-group">
+                                <form method="POST" action="{{ url_for('accion_permiso', id=permiso.Id_Solicitud_Permiso) }}">
+                                    <input type="hidden" name="accion" value="Aprobado">
+                                    <button type="submit" class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-check-circle"></i>
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('accion_permiso', id=permiso.Id_Solicitud_Permiso) }}">
+                                    <input type="hidden" name="accion" value="Rechazado">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                </form>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    <!-- Modal Detalle Permiso -->
+                    <div class="modal fade" id="detallePermisoModal{{ permiso.Id_Solicitud_Permiso }}" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header bg-primary text-white">
+                                    <h5 class="modal-title">Detalle de Permiso #{{ permiso.Id_Solicitud_Permiso }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <h6>Aprendiz:</h6>
+                                            <p>{{ permiso.Nombres }} {{ permiso.Apellidos }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Fecha Solicitud:</h6>
+                                            <p>{{ permiso.fecha_solicitud.strftime('%d/%m/%Y %H:%M') }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <h6>Motivo:</h6>
+                                            <p>{{ permiso.motivo }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Urgencia:</h6>
+                                            <span class="badge 
+                                                {% if permiso.urgencia == 'Urgente' %}bg-danger
+                                                {% elif permiso.urgencia == 'Alta' %}bg-warning text-dark
+                                                {% elif permiso.urgencia == 'Media' %}bg-info
+                                                {% else %}bg-secondary{% endif %}">
+                                                {{ permiso.urgencia }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <h6>Estado:</h6>
+                                            <span class="badge 
+                                                {% if permiso.estado_permiso == 'Aprobado' %}bg-success
+                                                {% elif permiso.estado_permiso == 'Rechazado' %}bg-danger
+                                                {% elif permiso.estado_permiso == 'En revision' %}bg-info text-dark
+                                                {% else %}bg-warning text-dark{% endif %}">
+                                                {{ permiso.estado_permiso }}
+                                            </span>
+                                        </div>
+                                        {% if permiso.fecha_respuesta %}
+                                        <div class="col-md-6">
+                                            <h6>Fecha Respuesta:</h6>
+                                            <p>{{ permiso.fecha_respuesta.strftime('%d/%m/%Y %H:%M') }}</p>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6>Evidencia:</h6>
+                                        {% if permiso.evidencia_tipo == 'PDF' %}
+                                        <a href="{{ url_for('static', filename='uploads/' + permiso.evidencia_valor) }}" 
+                                           class="btn btn-sm btn-outline-primary" target="_blank">
+                                            <i class="bi bi-file-earmark-pdf"></i> Ver PDF
+                                        </a>
+                                        {% else %}
+                                        <a href="{{ permiso.evidencia_valor }}" 
+                                           class="btn btn-sm btn-outline-primary" target="_blank">
+                                            <i class="bi bi-link-45deg"></i> Ver Enlace
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nuevo Permiso -->
+{% if user_type == 'Aprendiz' %}
+<div class="modal fade" id="nuevoPermisoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Solicitar Nuevo Permiso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('permisos') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="motivo" class="form-label">Motivo</label>
+                        <textarea class="form-control" id="motivo" name="motivo" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="urgencia" class="form-label">Urgencia</label>
+                        <select class="form-select" id="urgencia" name="urgencia" required>
+                            <option value="Baja">Baja</option>
+                            <option value="Media" selected>Media</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Urgente">Urgente</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="evidencia_tipo" class="form-label">Tipo de Evidencia</label>
+                        <select class="form-select" id="evidencia_tipo" name="evidencia_tipo" required>
+                            <option value="PDF">PDF (Documento)</option>
+                            <option value="URL">URL (Enlace)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="evidencia_valor" class="form-label">Evidencia</label>
+                        <input type="text" class="form-control" id="evidencia_valor" name="evidencia_valor" required>
+                        <small class="text-muted">Para PDF: nombre del archivo. Para URL: enlace completo</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Enviar Solicitud</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

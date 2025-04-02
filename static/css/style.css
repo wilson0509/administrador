@@ -1,0 +1,80 @@
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+}
+
+.table-responsive {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table th {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.btn-action {
+    margin: 2px;
+}
+
+.status-pendiente {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.status-aprobado {
+    background-color: #198754;
+    color: #fff;
+}
+
+.status-rechazado {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.status-en-revision {
+    background-color: #0dcaf0;
+    color: #000;
+}
+
+.alert-urgency-bajo {
+    border-left: 5px solid #198754;
+}
+
+.alert-urgency-medio {
+    border-left: 5px solid #ffc107;
+}
+
+.alert-urgency-alto {
+    border-left: 5px solid #fd7e14;
+}
+
+.alert-urgency-critico {
+    border-left: 5px solid #dc3545;
+}
+
+.task-pendiente {
+    border-left: 5px solid #ffc107;
+}
+
+.task-en-progreso {
+    border-left: 5px solid #0dcaf0;
+}
+
+.task-completada {
+    border-left: 5px solid #198754;
+}
+
+.task-cancelada {
+    border-left: 5px solid #6c757d;
+}

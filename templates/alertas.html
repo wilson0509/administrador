@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Alertas del Sistema{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-exclamation-triangle"></i> Alertas del Sistema</h2>
+
+<div class="card shadow">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-warning">
+                    <tr>
+                        <th>ID</th>
+                        <th>Tipo</th>
+                        <th>Descripción</th>
+                        <th>Nivel</th>
+                        <th>Estado</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alerta in alertas %}
+                    <tr class="alert-urgency-{{ alerta.nivel_urgencia.lower() }}">
+                        <td>{{ alerta.Id_Alerta_sistema }}</td>
+                        <td>{{ alerta.tipo_alerta }}</td>
+                        <td>{{ alerta.descripcion|truncate(50) }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if alerta.nivel_urgencia == 'Critico' %}bg-danger
+                                {% elif alerta.nivel_urgencia == 'Alto' %}bg-warning text-dark
+                                {% elif alerta.nivel_urgencia == 'Medio' %}bg-info
+                                {% else %}bg-secondary{% endif %}">
+                                {{ alerta.nivel_urgencia }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if alerta.estado_alerta == 'Cerrada' %}bg-success
+                                {% elif alerta.estado_alerta == 'Atendida' %}bg-primary
+                                {% elif alerta.estado_alerta == 'Vista' %}bg-info text-dark
+                                {% else %}bg-warning text-dark{% endif %}">
+                                {{ alerta.estado_alerta }}
+                            </span>
+                        </td>
+                        <td>{{ alerta.fecha_generacion.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" 
+                                    data-bs-target="#detalleAlertaModal{{ alerta.Id_Alerta_sistema }}">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            {% if alerta.estado_alerta != 'Cerrada' %}
+                            <div class="btn-group">
+                                <form method="POST" action="{{ url_for('accion_alerta', id=alerta.Id_Alerta_sistema) }}">
+                                    <input type="hidden" name="accion" value="Atendida">
+                                    <button type="submit" class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-check-circle"></i>
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('accion_alerta', id=alerta.Id_Alerta_sistema) }}">
+                                    <input type="hidden" name="accion" value="Cerrada">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                </form>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    <!-- Modal Detalle Alerta -->
+                    <div class="modal fade" id="detalleAlertaModal{{ alerta.Id_Alerta_sistema }}" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header bg-warning text-dark">
+                                    <h5 class="modal-title">Detalle de Alerta #{{ alerta.Id_Alerta_sistema }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <h6>Tipo:</h6>
+                                            <p>{{ alerta.tipo_alerta }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Fecha Generación:</h6>
+                                            <p>{{ alerta.fecha_generacion.strftime('%d/%m/%Y %H:%M') }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <h6>Nivel Urgencia:</h6>
+                                            <span class="badge 
+                                                {% if alerta.nivel_urgencia == 'Critico' %}bg-danger
+                                                {% elif alerta.nivel_urgencia == 'Alto' %}bg-warning text-dark
+                                                {% elif alerta.nivel_urgencia == 'Medio' %}bg-info
+                                                {% else %}bg-secondary{% endif %}">
+                                                {{ alerta.nivel_urgencia }}
+                                            </span>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Estado:</h6>
+                                            <span class="badge 
+                                                {% if alerta.estado_alerta == 'Cerrada' %}bg-success
+                                                {% elif alerta.estado_alerta == 'Atendida' %}bg-primary
+                                                {% elif alerta.estado_alerta == 'Vista' %}bg-info text-dark
+                                                {% else %}bg-warning text-dark{% endif %}">
+                                                {{ alerta.estado_alerta }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6>Descripción Completa:</h6>
+                                        <p>{{ alerta.descripcion }}</p>
+                                    </div>
+                                    {% if alerta.Solicitud_Permiso_Id_Solicitud_Permiso %}
+                                    <div class="alert alert-info">
+                                        <h6><i class="bi bi-file-earmark-text"></i> Permiso Relacionado:</h6>
+                                        <p>ID: {{ alerta.Solicitud_Permiso_Id_Solicitud_Permiso }}</p>
+                                        {% if alerta.Nombres %}
+                                        <p>Aprendiz: {{ alerta.Nombres }} {{ alerta.Apellidos }}</p>
+                                        {% endif %}
+                                        <a href="{{ url_for('permisos') }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-arrow-right"></i> Ver Permiso
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
